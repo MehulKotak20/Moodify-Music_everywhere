@@ -18,8 +18,15 @@ export const signup = async (req, res) => {
       throw new Error("All fields are required");
     }
 
-    const userAlreadyExists = await User.findOne({ email });
+    let userAlreadyExists = await User.findOne({ email });
     console.log("userAlreadyExists", userAlreadyExists);
+
+    // Check if user exists but is not verified
+    if (userAlreadyExists && !userAlreadyExists.isVerified) {
+      console.log("Deleting unverified user");
+      await userAlreadyExists.deleteOne();
+      userAlreadyExists = false; // Reset to false to allow signup
+    }
 
     if (userAlreadyExists) {
       return res
@@ -42,9 +49,10 @@ export const signup = async (req, res) => {
 
     await user.save();
 
-    // jwt
+    // Generate token and set cookie
     generateTokenAndSetCookie(res, user._id);
 
+    // Send verification email
     await sendVerificationEmail(user.email, verificationToken);
 
     res.status(201).json({
@@ -52,7 +60,7 @@ export const signup = async (req, res) => {
       message: "User created successfully",
       user: {
         ...user._doc,
-        password: undefined,
+        password: undefined, // Remove password from response
       },
     });
   } catch (error) {
@@ -60,8 +68,9 @@ export const signup = async (req, res) => {
   }
 };
 
+
 export const verifyEmail = async (req, res) => {
-  const { email, code } = req.body;
+  const { code } = req.body;
   try {
     const user = await User.findOne({
       verificationToken: code,
@@ -69,12 +78,10 @@ export const verifyEmail = async (req, res) => {
     });
 
     if (!user) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Invalid or expired verification code",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired verification code",
+      });
     } else {
       user.isVerified = true;
       user.verificationToken = undefined;
@@ -162,12 +169,10 @@ export const forgotPassword = async (req, res) => {
       `${process.env.CLIENT_URL}/reset-password/${resetToken}`
     );
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Password reset link sent to your email",
-      });
+    res.status(200).json({
+      success: true,
+      message: "Password reset link sent to your email",
+    });
   } catch (error) {
     console.log("Error in forgotPassword ", error);
     res.status(400).json({ success: false, message: error.message });
