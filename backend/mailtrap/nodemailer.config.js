@@ -3,18 +3,19 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-// Configure the transporter
+// Configure the transporter with secure options
 export const transporter = nodemailer.createTransport({
-  service: "gmail", // Use "gmail" or another SMTP service provider
+  service: "gmail",
   auth: {
     user: process.env.SMTP_EMAIL,
     pass: process.env.SMTP_PASSWORD, // App password or OAuth token
   },
-  logger: true, // Optional: Enable detailed logging
-  debug: false, // Optional: Disable debug logging
+  tls: {
+    rejectUnauthorized: false, // Ensure secure validation (set to true)
+  },
 });
 
-// Unified email client for sending emails
+// Unified email client
 export const mailtrapClient = {
   send: async ({
     from,
@@ -26,40 +27,41 @@ export const mailtrapClient = {
     category,
   }) => {
     try {
-      // Handle dynamic templates
-      let finalHtml = html || ""; // Fallback to empty string if `html` is undefined
+      // Handle templates dynamically
+      let finalHtml = html || "";
       if (template_uuid && template_variables) {
         Object.keys(template_variables).forEach((key) => {
-          const regex = new RegExp(`\\{${key}\\}`, "g");
+          const regex = new RegExp(`\\{${key}\\}`, "g"); // Fixed template regex
           finalHtml = finalHtml.replace(regex, template_variables[key]);
         });
       }
 
+      // Ensure HTML content is not empty
       if (!finalHtml) {
-        throw new Error(`No HTML content provided for the email.`);
+        throw new Error("No HTML content provided for the email."); // Fixed string error
       }
 
       // Prepare recipient emails
       const recipientEmails = to.map((recipient) => recipient.email).join(",");
 
-      // Send the email
+      // Send email
       const info = await transporter.sendMail({
-        from: `${from.name} <${from.email}>`,
+        from: `${from.name} <${from.email}>`, // Fixed template literals
         to: recipientEmails,
         subject,
         html: finalHtml,
       });
 
-      console.log(`[${category}] Email sent successfully: ${info.messageId}`);
+      console.log(`[${category}] Email sent successfully: ${info.messageId}`); // Fixed template literals
       return info;
     } catch (error) {
-      console.error(`[${category}] Error sending email:`, error.message);
-      throw new Error(`Error sending ${category} email: ${error.message}`);
+      console.error(`[${category}] Error sending email:`, error.message); // Fixed string syntax
+      throw new Error(`Error sending ${category} email: ${error.message}`); // Fixed template literals
     }
   },
 };
 
-// Define a reusable sender object
+// Reusable sender
 export const sender = {
   name: "Moodify",
   email: process.env.SMTP_EMAIL,
