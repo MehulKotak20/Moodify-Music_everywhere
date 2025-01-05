@@ -3,18 +3,19 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-// Configure the transporter
+// Configure the transporter with secure options
 export const transporter = nodemailer.createTransport({
-  service: "gmail", // Use "gmail" or another SMTP service provider
+  service: "gmail",
   auth: {
     user: process.env.SMTP_EMAIL,
     pass: process.env.SMTP_PASSWORD, // App password or OAuth token
   },
-  logger: true, // Optional: Enable detailed logging
-  debug: false, // Optional: Disable debug logging
+  tls: {
+    rejectUnauthorized: false, // Ensure secure validation (set to `true`)
+  },
 });
 
-// Unified email client for sending emails
+// Unified email client
 export const mailtrapClient = {
   send: async ({
     from,
@@ -26,8 +27,8 @@ export const mailtrapClient = {
     category,
   }) => {
     try {
-      // Handle dynamic templates
-      let finalHtml = html || ""; // Fallback to empty string if `html` is undefined
+      // Handle templates dynamically
+      let finalHtml = html || "";
       if (template_uuid && template_variables) {
         Object.keys(template_variables).forEach((key) => {
           const regex = new RegExp(`\\{${key}\\}`, "g");
@@ -35,6 +36,7 @@ export const mailtrapClient = {
         });
       }
 
+      // Ensure HTML content is not empty
       if (!finalHtml) {
         throw new Error(`No HTML content provided for the email.`);
       }
@@ -42,7 +44,7 @@ export const mailtrapClient = {
       // Prepare recipient emails
       const recipientEmails = to.map((recipient) => recipient.email).join(",");
 
-      // Send the email
+      // Send email
       const info = await transporter.sendMail({
         from: `${from.name} <${from.email}>`,
         to: recipientEmails,
@@ -59,7 +61,7 @@ export const mailtrapClient = {
   },
 };
 
-// Define a reusable sender object
+// Reusable sender
 export const sender = {
   name: "Moodify",
   email: process.env.SMTP_EMAIL,
