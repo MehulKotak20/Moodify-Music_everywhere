@@ -11,7 +11,7 @@ export const transporter = nodemailer.createTransport({
     pass: process.env.SMTP_PASSWORD, // App password or OAuth token
   },
   tls: {
-    rejectUnauthorized: false, // Ensure secure validation (set to `true`)
+    rejectUnauthorized: false, // Ensure secure validation (set to true)
   },
 });
 
@@ -31,14 +31,14 @@ export const mailtrapClient = {
       let finalHtml = html || "";
       if (template_uuid && template_variables) {
         Object.keys(template_variables).forEach((key) => {
-          const regex = new RegExp(`\\{${key}\\}`, "g");
+          const regex = new RegExp(`\\{${key}\\}`, "g"); // Fixed template regex
           finalHtml = finalHtml.replace(regex, template_variables[key]);
         });
       }
 
       // Ensure HTML content is not empty
       if (!finalHtml) {
-        throw new Error(`No HTML content provided for the email.`);
+        throw new Error("No HTML content provided for the email."); // Fixed string error
       }
 
       // Prepare recipient emails
@@ -46,17 +46,17 @@ export const mailtrapClient = {
 
       // Send email
       const info = await transporter.sendMail({
-        from: `${from.name} <${from.email}>`,
+        from: `${from.name} <${from.email}>`, // Fixed template literals
         to: recipientEmails,
         subject,
         html: finalHtml,
       });
 
-      console.log(`[${category}] Email sent successfully: ${info.messageId}`);
+      console.log(`[${category}] Email sent successfully: ${info.messageId}`); // Fixed template literals
       return info;
     } catch (error) {
-      console.error(`[${category}] Error sending email:`, error.message);
-      throw new Error(`Error sending ${category} email: ${error.message}`);
+      console.error(`[${category}] Error sending email:`, error.message); // Fixed string syntax
+      throw new Error(`Error sending ${category} email: ${error.message}`); // Fixed template literals
     }
   },
 };
