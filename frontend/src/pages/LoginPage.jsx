@@ -5,18 +5,26 @@ import { Link } from "react-router-dom";
 import Input from "../components/Input";
 import { useAuthStore } from "../store/authStore";
 
+const API_URL =
+  import.meta.env.MODE === "development"
+    ? "http://localhost:5000/api/auth"
+    : "/api/auth";
+
 const LoginPage = () => {
-	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-	const { login, isLoading, error } = useAuthStore();
+  const { login, isLoading, error } = useAuthStore();
 
-	const handleLogin = async (e) => {
-		e.preventDefault();
-		await login(email, password);
-	};
-
-	return (
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    await login(email, password);
+  };
+  const handleGoogleLogin = (e) => {
+    e.preventDefault(); // Prevent form submission
+    window.location.href = `${API_URL}/google`;
+  };
+  return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -69,6 +77,12 @@ const LoginPage = () => {
             )}
           </motion.button>
         </form>
+        <button
+          onClick={handleGoogleLogin}
+          className="w-full py-3 px-4 bg-red-500 text-white font-bold rounded-lg shadow-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 transition duration-200 mb-6"
+        >
+          Continue with Google
+        </button>
       </div>
       <div className="px-8 py-4 bg-gray-900 bg-opacity-50 flex justify-center">
         <p className="text-sm text-gray-400">

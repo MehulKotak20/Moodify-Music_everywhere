@@ -6,10 +6,16 @@ import { Link, useNavigate } from "react-router-dom";
 import PasswordStrengthMeter from "../components/PasswordStrengthMeter";
 import { useAuthStore } from "../store/authStore";
 
+const API_URL =
+  import.meta.env.MODE === "development"
+    ? "http://localhost:5000/api/auth"
+    : "/api/auth";
+
 const SignUpPage = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [formError, setFormError] = useState(""); // Added error state for validation
   const navigate = useNavigate();
 
   const { signup, error, isLoading } = useAuthStore();
@@ -17,12 +23,23 @@ const SignUpPage = () => {
   const handleSignUp = async (e) => {
     e.preventDefault();
 
+    // Check if any field is empty
+    if (!name.trim() || !email.trim() || !password.trim()) {
+      setFormError("All fields are required.");
+      return;
+    }
+
     try {
       await signup(email, password, name);
       navigate("/verify-email");
     } catch (error) {
       console.log(error);
     }
+  };
+
+  const handleGoogleLogin = (e) => {
+    e.preventDefault(); // Prevent form submission
+    window.location.href = `${API_URL}/google`;
   };
 
   return (
@@ -59,6 +76,9 @@ const SignUpPage = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
+          {formError && (
+            <p className="text-red-500 font-semibold mt-2">{formError}</p>
+          )}
           {error && <p className="text-red-500 font-semibold mt-2">{error}</p>}
           <PasswordStrengthMeter password={password} />
 
@@ -67,7 +87,9 @@ const SignUpPage = () => {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             type="submit"
-            disabled={isLoading}
+            disabled={
+              !name.trim() || !email.trim() || !password.trim() || isLoading
+            }
           >
             {isLoading ? (
               <Loader className="animate-spin mx-auto" size={24} />
@@ -75,6 +97,13 @@ const SignUpPage = () => {
               "Sign Up"
             )}
           </motion.button>
+
+          <button
+            onClick={handleGoogleLogin}
+            className="w-full py-3 px-4 bg-red-500 text-white font-bold rounded-lg shadow-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 transition duration-200 mb-6"
+          >
+            Sign In with Google
+          </button>
         </form>
       </div>
       <div className="px-8 py-4 bg-gray-900 bg-opacity-50 flex justify-center">

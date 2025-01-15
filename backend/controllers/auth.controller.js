@@ -19,13 +19,12 @@ export const signup = async (req, res) => {
     }
 
     let userAlreadyExists = await User.findOne({ email });
-    console.log("userAlreadyExists", userAlreadyExists);
 
     // Check if user exists but is not verified
     if (userAlreadyExists && !userAlreadyExists.isVerified) {
       console.log("Deleting unverified user");
       await userAlreadyExists.deleteOne();
-      userAlreadyExists = false; // Reset to false to allow signup
+      userAlreadyExists = null; // Reset to null to allow signup
     }
 
     if (userAlreadyExists) {
@@ -50,24 +49,62 @@ export const signup = async (req, res) => {
     await user.save();
 
     // Generate token and set cookie
-    generateTokenAndSetCookie(res, user._id);
+    generateTokenAndSetCookie(user._id);
 
     // Send verification email
     await sendVerificationEmail(user.email, verificationToken);
 
+    // Convert user to plain object and exclude sensitive fields
+    const userObj = user.toObject();
+    delete userObj.password;
+
     res.status(201).json({
       success: true,
       message: "User created successfully",
-      user: {
-        ...user._doc,
-        password: undefined, // Remove password from response
-      },
+      user: userObj,
     });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
 };
 
+export const login = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid credentials" });
+    }
+
+    const isPasswordValid = await bcryptjs.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid credentials" });
+    }
+
+    generateTokenAndSetCookie(res, user._id);
+
+    user.lastLogin = new Date();
+    await user.save();
+
+    // Convert user to plain object and exclude sensitive fields
+    const userObj = user.toObject();
+    delete userObj.password;
+
+    res.status(200).json({
+      success: true,
+      message: "Logged in successfully",
+      user: userObj,
+    });
+  } catch (error) {
+    console.log("Error in login ", error);
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
 
 export const verifyEmail = async (req, res) => {
   const { code } = req.body;
@@ -100,41 +137,6 @@ export const verifyEmail = async (req, res) => {
   } catch (error) {
     console.log("error in verifyEmail ", error);
     res.status(500).json({ success: false, message: "Server error" });
-  }
-};
-
-export const login = async (req, res) => {
-  const { email, password } = req.body;
-  try {
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid credentials" });
-    }
-    const isPasswordValid = await bcryptjs.compare(password, user.password);
-    if (!isPasswordValid) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid credentials" });
-    }
-
-    generateTokenAndSetCookie(res, user._id);
-
-    user.lastLogin = new Date();
-    await user.save();
-
-    res.status(200).json({
-      success: true,
-      message: "Logged in successfully",
-      user: {
-        ...user._doc,
-        password: undefined,
-      },
-    });
-  } catch (error) {
-    console.log("Error in login ", error);
-    res.status(400).json({ success: false, message: error.message });
   }
 };
 
