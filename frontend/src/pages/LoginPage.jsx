@@ -79,7 +79,7 @@ const LoginPage = () => {
         </form>
         <button
           onClick={handleGoogleLogin}
-          className="w-full py-3 px-4 bg-red-500 text-white font-bold rounded-lg shadow-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 transition duration-200 mb-6"
+          className="w-full py-3 mt-4 px-4 bg-gradient-to-r from-purple-900 via-violet-900 to-blue-900 text-white font-bold rounded-lg shadow-lg hover:from-pink-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition duration-200"
         >
           Continue with Google
         </button>
