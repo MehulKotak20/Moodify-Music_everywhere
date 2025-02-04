@@ -78,7 +78,13 @@ export const login = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Invalid credentials" });
     }
-
+    
+    if(user.email && user.googleId )
+    {
+      return res
+       .status(400)
+       .json({ success: false, message: "This ID is already loged in via google" });
+    }
     const isPasswordValid = await bcryptjs.compare(password, user.password);
     if (!isPasswordValid) {
       return res
@@ -86,7 +92,7 @@ export const login = async (req, res) => {
         .json({ success: false, message: "Invalid credentials" });
     }
 
-    generateTokenAndSetCookie(user._id);
+    generateTokenAndSetCookie( user._id);
 
     user.lastLogin = new Date();
     await user.save();
@@ -155,6 +161,12 @@ export const forgotPassword = async (req, res) => {
         .status(400)
         .json({ success: false, message: "User not found" });
     }
+    // if (user.googleId) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "This account is linked with Google. Please use Google login to access your account.",
+    //   });
+    // }
 
     // Generate reset token
     const resetToken = crypto.randomBytes(20).toString("hex");
