@@ -5,7 +5,7 @@ import { generateTokenAndSetCookie } from "./utils/generateTokenAndSetCookie.js"
 
 // Initialize Passport with Google Strategy
 passport.use(
-  new GoogleStrategy(
+  new GoogleStrategy( 
     {
       clientID: process.env.CLIENT_ID,
       clientSecret: process.env.CLIENT_SECRET,
