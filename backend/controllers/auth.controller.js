@@ -47,9 +47,10 @@ export const signup = async (req, res) => {
     });
 
     await user.save();
+ const adminEmails = process.env.ADMIN_EMAILS.split(",");
+ const isAdmin = adminEmails.includes(email);
 
-    // Generate token and set cookie
-    generateTokenAndSetCookie(user._id);
+ const token = generateTokenAndSetCookie(user._id, isAdmin);
 
     // Send verification email
     await sendVerificationEmail(user.email, verificationToken);
@@ -61,7 +62,7 @@ export const signup = async (req, res) => {
     res.status(201).json({
       success: true,
       message: "User created successfully",
-      user: userObj,
+      user: { ...userObj, token, isAdmin },
     });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
@@ -78,12 +79,12 @@ export const login = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Invalid credentials" });
     }
-    
-    if(user.email && user.googleId )
-    {
-      return res
-       .status(400)
-       .json({ success: false, message: "This ID is already loged in via google" });
+
+    if (user.email && user.googleId) {
+      return res.status(400).json({
+        success: false,
+        message: "This ID is already loged in via google",
+      });
     }
     const isPasswordValid = await bcryptjs.compare(password, user.password);
     if (!isPasswordValid) {
@@ -92,7 +93,10 @@ export const login = async (req, res) => {
         .json({ success: false, message: "Invalid credentials" });
     }
 
-    generateTokenAndSetCookie( user._id);
+    const adminEmails = process.env.ADMIN_EMAILS.split(",");
+    const isAdmin = adminEmails.includes(email);
+
+    const token = generateTokenAndSetCookie(user._id, isAdmin);
 
     user.lastLogin = new Date();
     await user.save();
@@ -104,7 +108,7 @@ export const login = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Logged in successfully",
-      user: userObj,
+      user: { ...userObj, token, isAdmin },
     });
   } catch (error) {
     console.log("Error in login ", error);
@@ -228,6 +232,9 @@ export const resetPassword = async (req, res) => {
   }
 };
 
+import jwt from "jsonwebtoken";
+
+
 export const checkAuth = async (req, res) => {
   try {
     const user = await User.findById(req.userId).select("-password");
@@ -239,7 +246,7 @@ export const checkAuth = async (req, res) => {
 
     res.status(200).json({ success: true, user });
   } catch (error) {
-    console.log("Error in checkAuth ", error);
+    console.log("Error in checkAuth:", error);
     res.status(400).json({ success: false, message: error.message });
   }
 };
