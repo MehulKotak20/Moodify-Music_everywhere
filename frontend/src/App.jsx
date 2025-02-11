@@ -31,6 +31,16 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+const NotAdminRoute = ({ children }) => {
+  const { isAuthenticated, Admin } = useAuthStore();
+
+
+  if (Admin) {
+    return <Navigate to="/Admin-Dashboard" replace />;
+  }
+
+  return children;
+};
 const AdminRoute = ({ children }) => {
   const { isAuthenticated, Admin } = useAuthStore();
 
@@ -195,9 +205,11 @@ function App() {
         path="/"
         element={
           <ProtectedRoute>
+            <NotAdminRoute >
             <DashboardLayout>
               <DashboardPage />
             </DashboardLayout>
+            </NotAdminRoute>
           </ProtectedRoute>
         }
       />
