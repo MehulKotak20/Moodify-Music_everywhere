@@ -15,6 +15,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 
 // Auth Store
 import { useAuthStore } from "./store/authStore";
+import LanguageSelector from "./pages/LanguageSelector";
 
 // Protected Routes
 const ProtectedRoute = ({ children }) => {
@@ -190,6 +191,18 @@ function App() {
         }
       />
 
+   <Route
+        path="/LanguageSelector"
+        element={
+          
+          <ProtectedRoute>
+           <LanguageSelector/>
+          </ProtectedRoute>
+
+
+        }
+      />
+  
       {/* Dashboard Route */}
       <Route
         path="/"
@@ -202,6 +215,7 @@ function App() {
         }
       />
     </Routes>
+    
   );
 }
 
