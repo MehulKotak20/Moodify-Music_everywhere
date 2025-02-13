@@ -78,7 +78,7 @@ const Dashboard = () => {
 
 
     return (
-        <div className="flex h-screen w-screen bg-gray-100">
+        <div className="flex h-screen w-screen bg-gray-100 overflow-hidden">
             {/* Sidebar */}
             <div className="w-64 bg-purple-900 text-white flex flex-col">
                 <h1 className="text-xl font-bold p-4">🎵 Music Admin</h1>
