@@ -8,8 +8,8 @@ import SongForm from "../components/SongForm";
 const AdminDashboard = () => {
   const [selectedSection, setSelectedSection] = useState("details");
   const [songs, setSongs] = useState([]);
-  const [editingSong, setEditingSong] = useState(null); // Track song being edited
-  const [deletingSong, setDeletingSong] = useState(null); // Track song being deleted
+  const [editingSong, setEditingSong] = useState(null);
+  const [deletingSong, setDeletingSong] = useState(null);
   const { logout } = useAuthStore();
 
   useEffect(() => {
@@ -50,7 +50,6 @@ const AdminDashboard = () => {
   };
 
   const handleDeleteSong = async (songId) => {
-
     try {
       await axios.delete(`http://localhost:5000/api/song/${songId}`, {
         headers: {
@@ -70,28 +69,32 @@ const AdminDashboard = () => {
 
       <div className="flex-1 p-6">
         {selectedSection === "details" && !editingSong && (
-          <SongForm fetchSongs={fetchSongs} /> // Add song form when not editing
+          <SongForm fetchSongs={fetchSongs} />
         )}
 
         {selectedSection === "songs" && (
           <div className="bg-white p-6 rounded-lg shadow">
             <h2 className="text-xl font-semibold mb-4">🎶 All Songs</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {songs.map((song) => (
+            <div className="space-y-2">
+              {songs.map((song, index) => (
                 <div
                   key={song._id}
-                  className="bg-gray-200 p-4 rounded-lg shadow"
+                  className="flex items-center hover:bg-gray-100 p-2 rounded-lg transition-colors group"
                 >
-                  <img
-                    src={song.thumbnail}
-                    alt={song.title}
-                    className="w-full h-40 object-cover rounded-lg"
-                  />
+                  <div className="w-12 text-gray-400">{index + 1}</div>
+                  <div className="w-12 h-12 mr-4">
+                    <img
+                      src={song.thumbnail}
+                      alt={song.title}
+                      className="w-full h-full object-cover rounded"
+                    />
+                  </div>
+                  
                   {editingSong === song._id ? (
-                    <div className="mt-2">
+                    <div className="flex-1">
                       <SongForm
                         fetchSongs={fetchSongs}
-                        initialData={song} // Pass song data to populate the form
+                        initialData={song}
                         onSubmit={(updatedDetails) =>
                           handleUpdateSong(song._id, updatedDetails)
                         }
@@ -105,27 +108,29 @@ const AdminDashboard = () => {
                     </div>
                   ) : (
                     <>
-                      <h3 className="text-lg font-semibold mt-2">
-                        {song.title}
-                      </h3>
-                      <p className="text-sm text-gray-600">{song.singer}</p>
+                      <div className="flex-1">
+                        <h3 className="text-base font-semibold">{song.title}</h3>
+                        <p className="text-sm text-gray-600">{song.singer}</p>
+                      </div>
 
-                      <CustomAudioPlayer
-                        src={song.audio}
-                        thumbnail={song.thumbnail}
-                        title={song.title}
-                        singer={song.singer}
-                      />
+                      <div className="flex-1">
+                        <CustomAudioPlayer
+                          src={song.audio}
+                          thumbnail={song.thumbnail}
+                          title={song.title}
+                          singer={song.singer}
+                        />
+                      </div>
 
-                      <div className="flex justify-between mt-2">
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-2 mr-4">
                         <button
-                          onClick={() => setEditingSong(song._id)} // Start editing song
+                          onClick={() => setEditingSong(song._id)}
                           className="bg-yellow-500 text-white py-1 px-3 rounded"
                         >
                           ✏️ Edit
                         </button>
                         <button
-                          onClick={() => setDeletingSong(song._id)} // Start delete song
+                          onClick={() => setDeletingSong(song._id)}
                           className="bg-red-500 text-white py-1 px-3 rounded"
                         >
                           🗑 Delete
@@ -147,7 +152,7 @@ const AdminDashboard = () => {
             <h2 className="text-xl font-semibold">Edit Song</h2>
             <SongForm
               fetchSongs={fetchSongs}
-              initialData={songs.find((song) => song._id === editingSong)} // Find the song to edit
+              initialData={songs.find((song) => song._id === editingSong)}
               onSubmit={(updatedDetails) =>
                 handleUpdateSong(editingSong, updatedDetails)
               }
@@ -174,14 +179,14 @@ const AdminDashboard = () => {
               <button
                 onClick={() => {
                   handleDeleteSong(deletingSong);
-                  setDeletingSong(null); // Close modal after deletion
+                  setDeletingSong(null);
                 }}
                 className="bg-red-500 text-white py-2 px-4 rounded"
               >
                 Yes, Delete
               </button>
               <button
-                onClick={() => setDeletingSong(null)} // Cancel delete
+                onClick={() => setDeletingSong(null)}
                 className="bg-gray-300 text-gray-800 py-2 px-4 rounded"
               >
                 Cancel
