@@ -47,7 +47,7 @@ const CustomAudioPlayer = ({ src, thumbnail, title, singer }) => {
   };
 
   return (
-    <div className="bg-gray-900 text-white p-4 rounded-xl shadow-lg flex items-center gap-4">
+    <div className=" text-black p-0  rounded-xl  flex items-center gap-4">
       {/* Thumbnail */}
       <img src={thumbnail} alt="Thumbnail" className="w-16 h-16 rounded-lg" />
 
@@ -66,12 +66,12 @@ const CustomAudioPlayer = ({ src, thumbnail, title, singer }) => {
       </div>
 
       {/* Controls */}
-      <button onClick={togglePlay} className="text-white text-2xl">
+      <button onClick={togglePlay} className="text-black text-2xl">
         {isPlaying ? <Pause size={24} /> : <Play size={24} />}
       </button>
 
       {/* Volume */}
-      <button onClick={toggleMute} className="text-white">
+      <button onClick={toggleMute} className="text-black">
         {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
       </button>
 

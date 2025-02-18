@@ -79,16 +79,9 @@ const AdminDashboard = () => {
               {songs.map((song, index) => (
                 <div
                   key={song._id}
-                  className="flex items-center hover:bg-gray-100 p-2 rounded-lg transition-colors group"
+                  className="flex items-center hover:bg-gray-100 p-2 rounded-lg transition-colors"
                 >
-                  <div className="w-12 text-gray-400">{index + 1}</div>
-                  <div className="w-12 h-12 mr-4">
-                    <img
-                      src={song.thumbnail}
-                      alt={song.title}
-                      className="w-full h-full object-cover rounded"
-                    />
-                  </div>
+                  <div className="w-8 text-gray-400">{index + 1}</div>
                   
                   {editingSong === song._id ? (
                     <div className="flex-1">
@@ -108,33 +101,32 @@ const AdminDashboard = () => {
                     </div>
                   ) : (
                     <>
-                      <div className="flex-1">
-                        <h3 className="text-base font-semibold">{song.title}</h3>
-                        <p className="text-sm text-gray-600">{song.singer}</p>
-                      </div>
+                      <div className="flex-1 flex items-center">
+                        <div className="flex-1 flex items-center justify-between">
+                          <div className="flex-1">
+                            <CustomAudioPlayer
+                              src={song.audio}
+                              thumbnail={song.thumbnail}
+                              title={song.title}
+                              singer={song.singer}
+                            />
+                          </div>
 
-                      <div className="flex-1">
-                        <CustomAudioPlayer
-                          src={song.audio}
-                          thumbnail={song.thumbnail}
-                          title={song.title}
-                          singer={song.singer}
-                        />
-                      </div>
-
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-2 mr-4">
-                        <button
-                          onClick={() => setEditingSong(song._id)}
-                          className="bg-yellow-500 text-white py-1 px-3 rounded"
-                        >
-                          ✏️ Edit
-                        </button>
-                        <button
-                          onClick={() => setDeletingSong(song._id)}
-                          className="bg-red-500 text-white py-1 px-3 rounded"
-                        >
-                          🗑 Delete
-                        </button>
+                          <div className="flex gap-2 ml-4">
+                            <button
+                              onClick={() => setEditingSong(song._id)}
+                              className="bg-purple-600 text-white py-1 px-3 rounded hover:bg-purple-700 transition-colors"
+                            >
+                              ✏️ Edit
+                            </button>
+                            <button
+                              onClick={() => setDeletingSong(song._id)}
+                              className="bg-purple-500 text-white py-1 px-3 rounded hover:bg-purple-600 transition-colors"
+                            >
+                              🗑 Delete
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </>
                   )}
