@@ -33,7 +33,7 @@ const ProtectedRoute = ({ children }) => {
 };
 
 const NotAdminRoute = ({ children }) => {
-  const { isAuthenticated, Admin } = useAuthStore();
+  const { Admin } = useAuthStore();
 
 
   if (Admin) {
