@@ -30,25 +30,41 @@ router.get(
   "/google",
   passport.authenticate("google", { scope: ["profile", "email"] })
 );
+
 router.get(
   "/google/callback",
   passport.authenticate("google", { session: false }),
   (req, res) => {
-    const { token } = req.user;
+    if (!req.user) {
+      console.error("Google authentication failed. No user data received.");
+      return res
+        .status(401)
+        .json({ message: "Google login failed. No user data." });
+    }
+
+    const { user, token } = req.user;
+
+    if (!token) {
+      console.error("Google authentication failed. No token received.");
+      return res
+        .status(401)
+        .json({ message: "Google login failed. No token." });
+    }
 
     // Set token as HTTP-only cookie
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
-    res.redirect(`${process.env.CLIENT_URL}/`);
-    // Send the JWT token to the client (either in a cookie or response)
-    res.cookie("token", token, { httpOnly: true, secure: true }); // Secure flag should be set to true in production (with HTTPS)
-    res.json({ message: "Login successful", token });
+    console.log("Google login successful:", user.email);
+
+    return res.redirect(`${process.env.CLIENT_URL}/`);
   }
 );
+
+
 
 export default router;

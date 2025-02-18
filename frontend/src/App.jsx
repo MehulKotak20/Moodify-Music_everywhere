@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, Outlet } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 
 // Components and Pages
@@ -11,18 +11,20 @@ import EmailVerificationPage from "./pages/EmailVerificationPage";
 import DashboardPage from "./pages/DashboardPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+import AdminDashboard from "./pages/AdminDashboard";
 
 // Auth Store
 import { useAuthStore } from "./store/authStore";
+import LanguageSelector from "./pages/LanguageSelector";
 
 // Protected Routes
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, user } = useAuthStore();
-
+ 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
-
+ 
   if (!user.isVerified) {
     return <Navigate to="/verify-email" replace />;
   }
@@ -30,12 +32,39 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+const NotAdminRoute = ({ children }) => {
+  const { isAuthenticated, Admin } = useAuthStore();
+
+
+  if (Admin) {
+    return <Navigate to="/Admin-Dashboard" replace />;
+  }
+
+  return children;
+};
+const AdminRoute = ({ children }) => {
+  const { isAuthenticated, Admin } = useAuthStore();
+
+  // console.log(
+  //   "Checking Admin Access - isAuthenticated:",
+  //   isAuthenticated,
+  //   "isAdmin:",
+  //   Admin
+  // );
+
+  if (!isAuthenticated || !Admin) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+};
+
 // Redirect Authenticated Users
 const RedirectAuthenticatedUser = ({ children }) => {
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, Admin } = useAuthStore();
 
-  if (isAuthenticated && user.isVerified) {
-    return <Navigate to="/" replace />;
+  if (isAuthenticated && user?.isVerified) {
+    return <Navigate to={Admin ? "/Admin-Dashboard" : "/"} replace />;
   }
 
   return children;
@@ -163,19 +192,42 @@ function App() {
           </AuthLayout>
         }
       />
+      <Route
+        path="/Admin-Dashboard"
+        element={
+          <AdminRoute>
+            <AdminDashboard />
+          </AdminRoute>
+        }
+      />
 
+   <Route
+        path="/LanguageSelector"
+        element={
+          
+          <ProtectedRoute>
+           <LanguageSelector/>
+          </ProtectedRoute>
+
+
+        }
+      />
+  
       {/* Dashboard Route */}
       <Route
         path="/"
         element={
           <ProtectedRoute>
+            <NotAdminRoute >
             <DashboardLayout>
               <DashboardPage />
             </DashboardLayout>
+            </NotAdminRoute>
           </ProtectedRoute>
         }
       />
     </Routes>
+    
   );
 }
 

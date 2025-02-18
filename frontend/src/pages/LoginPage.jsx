@@ -4,6 +4,7 @@ import { Mail, Lock, Loader } from "lucide-react";
 import { Link } from "react-router-dom";
 import Input from "../components/Input";
 import { useAuthStore } from "../store/authStore";
+import { useNavigate } from "react-router-dom";
 
 const API_URL =
   import.meta.env.MODE === "development"
@@ -15,11 +16,16 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
 
   const { login, isLoading, error } = useAuthStore();
+  const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    await login(email, password);
-  };
+   const handleLogin = async (e) => {
+     e.preventDefault(); // 🚀 Prevent page refresh
+     try {
+       await login(email, password, navigate); // ✅ Pass `navigate` to Zustand
+     } catch (err) {
+       console.error("Login failed:", err);
+     }
+   };
   const handleGoogleLogin = (e) => {
     e.preventDefault(); // Prevent form submission
     window.location.href = `${API_URL}/google`;

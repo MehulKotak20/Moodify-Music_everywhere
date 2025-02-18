@@ -8,13 +8,18 @@ const API_URL =
 
 axios.defaults.withCredentials = true;
 
+
+
+
 export const useAuthStore = create((set) => ({
-  user: null,
+  user:null,
   isAuthenticated: false,
   error: null,
   isLoading: false,
   isCheckingAuth: true,
   message: null,
+  storedToken: localStorage.getItem("token") || null,
+  Admin: localStorage.getItem("isAdmin") === "true",
 
   signup: async (email, password, name) => {
     set({ isLoading: true, error: null });
@@ -24,9 +29,12 @@ export const useAuthStore = create((set) => ({
         password,
         name,
       });
+      localStorage.setItem("token", response.data.user.token);
+      localStorage.setItem("isAdmin", response.data.user.isAdmin);
       set({
         user: response.data.user,
         isAuthenticated: true,
+        isAdmin: response.data.user.isAdmin,
         isLoading: false,
       });
     } catch (error) {
@@ -37,25 +45,45 @@ export const useAuthStore = create((set) => ({
       throw error;
     }
   },
-  login: async ( email, password ) => {
+  login: async (email, password, navigate) => {
     set({ isLoading: true, error: null });
     try {
       const response = await axios.post(`${API_URL}/login`, {
         email,
         password,
       });
+
+const {user}=response.data;
+      // Store token & admin status in localStorage
+      localStorage.setItem("token", user.token);
+      localStorage.setItem("isAdmin", user.isAdmin ? "true" : "false");
+
       set({
         isAuthenticated: true,
-        user: response.data.user,
+         user: response.data.user,
+        isAdmin: user.isAdmin,
         error: null,
         isLoading: false,
       });
+
+      console.log("Login Successful - isAdmin:", user.isAdmin);
+
+      // 🚀 Navigate after successful login
+      setTimeout(() => {
+        if (user.isAdmin) {
+          navigate("/Admin-Dashboard");
+          console.log("navigate admin");
+           // ✅ Redirect to admin
+        } else {
+          navigate("/"); // ✅ Redirect to user dashboard
+        }
+      }, 10);
     } catch (error) {
       set({
         error: error.response?.data?.message || "Error logging in",
         isLoading: false,
       });
-      throw error;
+      console.error("Login Error:", error);
     }
   },
 
@@ -63,6 +91,10 @@ export const useAuthStore = create((set) => ({
     set({ isLoading: true, error: null });
     try {
       await axios.post(`${API_URL}/logout`);
+
+      // Remove token from localStorage
+      localStorage.removeItem("token");
+      localStorage.removeItem("isAdmin");
       set({
         user: null,
         isAuthenticated: false,
@@ -94,17 +126,39 @@ export const useAuthStore = create((set) => ({
   },
   checkAuth: async () => {
     set({ isCheckingAuth: true, error: null });
+
+    // 1️⃣ Check token from localStorage (Email/Password Login)
+    let token = localStorage.getItem("token");
+
     try {
-      const response = await axios.get(`${API_URL}/check-auth`);
+      const response = await axios.get(`${API_URL}/check-auth`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}, // Send token if available
+        withCredentials: true, // Include cookies in request (for Google login)
+      });
+
+      console.log("Auth check response:", response.data);
+
+      // 2️⃣ If user is authenticated, update state
       set({
         user: response.data.user,
         isAuthenticated: true,
+        isAdmin: response.data.user.isAdmin,
         isCheckingAuth: false,
       });
+
+      // 3️⃣ If token came from cookies, store it in localStorage for consistency
+      if (!token && response.data.token) {
+        localStorage.setItem("token", response.data.token);
+      }
     } catch (error) {
-      set({ error: null, isCheckingAuth: false, isAuthenticated: false });
+      console.log("Error in checkAuth:", error);
+      localStorage.removeItem("token");
+      localStorage.removeItem("isAdmin");
+
+      set({ isAuthenticated: false, isCheckingAuth: false, isAdmin: false });
     }
   },
+
   forgotPassword: async (email) => {
     set({ isLoading: true, error: null });
     try {
