@@ -15,7 +15,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 
 // Auth Store
 import { useAuthStore } from "./store/authStore";
-import LanguageSelector from "./pages/LanguageSelector";
+import LanguagePreference from "./pages/LanguagePreference";
 
 // Protected Routes
 const ProtectedRoute = ({ children }) => {
@@ -202,11 +202,11 @@ function App() {
       />
 
    <Route
-        path="/LanguageSelector"
+        path="/LanguagePreference"
         element={
           
           <ProtectedRoute>
-           <LanguageSelector/>
+           <LanguagePreference/>
           </ProtectedRoute>
 
 
