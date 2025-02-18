@@ -30,8 +30,8 @@ const SongForm = ({ fetchSongs, initialData, onSubmit }) => {
 
   const genres = ["Pop", "Rock", "Jazz", "Classical", "Hip-Hop"];
   const languages = ["English", "Hindi", "Gujarati", "Punjabi"];
-  const moods = ["Happy", "Sad", "Energetic", "Romantic"];
-  const weatherOptions = ["Sunny", "Rainy", "Cloudy", "Snowy"];
+  const moods = ["Happy", "Sad", "Romantic", "Angry"];
+  const weatherOptions = ["Sunny", "Rainy", "Cloudy", "Snowy", "Night"];
 
   const artists = [
     { id: 1, name: 'Arijit Singh', image: '/Images/arijit.jpg' },
