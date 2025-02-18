@@ -2,11 +2,9 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 const SongForm = ({ fetchSongs, initialData, onSubmit }) => {
-  // Initialize state based on whether we are editing or adding
   const [song, setSong] = useState({
     title: "",
     singer: "",
-    album: "",
     language: "",
     genre: "",
     mood: "",
@@ -15,19 +13,17 @@ const SongForm = ({ fetchSongs, initialData, onSubmit }) => {
     audio: null,
   });
 
-  // Handle the case where we're editing an existing song
   useEffect(() => {
     if (initialData) {
       setSong({
         title: initialData.title || "",
         singer: initialData.singer || "",
-        album: initialData.album || "",
         language: initialData.language || "",
         genre: initialData.genre || "",
         mood: initialData.mood || "",
         weather: initialData.weather || "",
-        thumbnail: null, // Prevent overriding thumbnail if not provided
-        audio: null, // Prevent overriding audio if not provided
+        thumbnail: null,
+        audio: null,
       });
     }
   }, [initialData]);
@@ -36,6 +32,26 @@ const SongForm = ({ fetchSongs, initialData, onSubmit }) => {
   const languages = ["English", "Hindi", "Gujarati", "Punjabi"];
   const moods = ["Happy", "Sad", "Energetic", "Romantic"];
   const weatherOptions = ["Sunny", "Rainy", "Cloudy", "Snowy"];
+
+  const artists = [
+    { id: 1, name: 'Arijit Singh', image: '/Images/arijit.jpg' },
+    { id: 2, name: 'Taylor Swift', image: '/Images/tylor.webp' },
+    { id: 3, name: 'Diljit Dosanjh', image: '/Images/diljiit.jpg' },
+    { id: 4, name: 'Darshan Raval', image: 'Images/darshan.jpg' },
+    { id: 5, name: 'Neha Kakkar', image: 'Images/neha.webp' },
+    { id: 6, name: 'Anuv Jain', image: 'Images/anuv.webp' },
+    { id: 7, name: 'Pritam', image: 'Images/pritam.jpg' },
+    { id: 8, name: 'Atif Aslam', image: 'Images/atif_new.jpg' },
+    { id: 9, name: 'Sachin-jigar', image: 'Images/Sachin-jigar.jpg' },
+    { id: 10, name: 'KK', image: 'Images/kk.jpg' },
+    { id: 11, name: 'Shreya Ghosal', image: 'Images/shreya_ghosal.webp' },
+    { id: 13, name: 'Yo Yo Honey Singh', image: 'Images/honey.jpg' },
+    { id: 14, name: 'Selena Gomez', image: 'Images/selena.jpg' },
+    { id: 15, name: 'Armaan Malik', image: 'Images/arman.jpg' },
+    { id: 16, name: 'Harry Styles', image: 'Images/harry_styles.jpg' },
+    { id: 17, name: 'Harshdeep Kaur', image: 'Images/harshdeep-kaur.jpg' },
+  ].sort((a, b) => a.name.localeCompare(b.name));
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -58,7 +74,6 @@ const SongForm = ({ fetchSongs, initialData, onSubmit }) => {
     const formData = new FormData();
     formData.append("title", song.title);
     formData.append("singer", song.singer);
-    formData.append("album", song.album);
     formData.append("language", song.language);
     formData.append("genre", song.genre);
     formData.append("mood", song.mood);
@@ -67,7 +82,6 @@ const SongForm = ({ fetchSongs, initialData, onSubmit }) => {
     formData.append("audio", song.audio);
 
     try {
-      // If editing an existing song, call the update endpoint
       if (initialData) {
         await axios.put(
           `http://localhost:5000/api/song/${initialData._id}`,
@@ -81,7 +95,6 @@ const SongForm = ({ fetchSongs, initialData, onSubmit }) => {
         );
         alert("Song updated successfully!");
       } else {
-        // If adding a new song, call the add endpoint
         await axios.post("http://localhost:5000/api/song/new", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
@@ -91,11 +104,9 @@ const SongForm = ({ fetchSongs, initialData, onSubmit }) => {
         alert("Song added successfully!");
       }
 
-      // Reset the form and refetch songs
       setSong({
         title: "",
         singer: "",
-        album: "",
         language: "",
         genre: "",
         mood: "",
@@ -125,22 +136,20 @@ const SongForm = ({ fetchSongs, initialData, onSubmit }) => {
           className="border p-2 rounded"
           required
         />
-        <input
-          type="text"
+        <select
           name="singer"
           value={song.singer}
           onChange={handleInputChange}
-          placeholder="Singer"
           className="border p-2 rounded"
-        />
-        <input
-          type="text"
-          name="album"
-          value={song.album}
-          onChange={handleInputChange}
-          placeholder="Album"
-          className="border p-2 rounded"
-        />
+        >
+          <option value="">Select Singer</option>
+          {artists.map((artist) => (
+            <option key={artist.id} value={artist.name}>
+              {artist.name}
+            </option>
+          ))}
+        </select>
+
         <input
           type="text"
           name="language"
@@ -221,6 +230,5 @@ const SongForm = ({ fetchSongs, initialData, onSubmit }) => {
       </button>
     </div>
   );
-};
-
+}
 export default SongForm;
