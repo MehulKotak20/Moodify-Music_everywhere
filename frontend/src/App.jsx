@@ -16,9 +16,14 @@ import Home from "./pages/Home";
 
 // Auth Store
 import { useAuthStore } from "./store/authStore";
-import LanguageSelector from "./pages/LanguageSelector";
+
+
 import PlayList from "./pages/PlayList";
-//import { Home } from "lucide-react";
+
+
+
+import LanguagePreference from "./pages/LanguagePreference";
+
 
 // Protected Routes
 const ProtectedRoute = ({ children }) => {
@@ -36,7 +41,7 @@ const ProtectedRoute = ({ children }) => {
 };
 
 const NotAdminRoute = ({ children }) => {
-  const { isAuthenticated, Admin } = useAuthStore();
+  const { Admin } = useAuthStore();
 
 
   if (Admin) {
@@ -205,10 +210,14 @@ function App() {
       />
 
    <Route
-        path="/LanguageSelector"
-        element={ 
+
+      
+        path="/LanguagePreference"
+        element={
+          
+
           <ProtectedRoute>
-           <LanguageSelector/>
+           <LanguagePreference/>
           </ProtectedRoute>
          }
       />

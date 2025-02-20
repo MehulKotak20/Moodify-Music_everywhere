@@ -1,272 +1,192 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuthStore } from "../store/authStore";
+import axios from "axios";
+import CustomAudioPlayer from "../components/AudioPlayer";
+import Sidebar from "../components/Sidebar";
+import SongForm from "../components/SongForm";
+
 const AdminDashboard = () => {
-  const [selectedSection, setSelectedSection] = useState("dashboard");
-  const [songs, setSongs] = useState([]); // List of added songs
-  const [newSong, setNewSong] = useState({
-    name: "",
-    artist: "Artist A",
-    picture: "",
-    genre: "Pop",
-    language: "English",
-    mood: "Happy",
-    weather: "Sunny",
-  });
+  const [selectedSection, setSelectedSection] = useState("details");
+  const [songs, setSongs] = useState([]);
+  const [editingSong, setEditingSong] = useState(null);
+  const [deletingSong, setDeletingSong] = useState(null);
+  const { logout } = useAuthStore();
 
-  const { user, logout } = useAuthStore();
+  useEffect(() => {
+    fetchSongs();
+  }, []);
 
-  const handleLogout = () => {
-    logout();
-  };
-  const artists = ["Artist A", "Artist B", "Artist C"];
-  const genres = ["Pop", "Rock", "Jazz", "Classical", "Hip-Hop"];
-  const languages = ["English", "Hindi", "Gujrati", "Punjabi"];
-  const moods = ["Happy", "Sad", "Energetic", "Romantic"];
-  const weatherOptions = ["Sunny", "Rainy", "Cloudy", "Snowy"];
-
-  // Handle input changes
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewSong({ ...newSong, [name]: value });
+  const fetchSongs = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/api/song/all", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      setSongs(response.data);
+    } catch (error) {
+      console.error("Error fetching songs:", error);
+    }
   };
 
-  // Handle song submission
-  const handleAddSong = () => {
-    if (newSong.name && newSong.picture) {
-      setSongs([...songs, newSong]); // Add song to list
-      setNewSong({
-        name: "",
-        artist: "Artist A",
-        picture: "",
-        genre: "Pop",
-        language: "English",
-        mood: "Happy",
-        weather: "Sunny",
-      }); // Reset form
+  const handleUpdateSong = async (songId, updatedDetails) => {
+    try {
+      await axios.put(
+        `http://localhost:5000/api/song/update/${songId}`,
+        updatedDetails,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      alert("Song updated successfully!");
+      setEditingSong(null);
+      fetchSongs();
+    } catch (error) {
+      console.error("Error updating song:", error);
+    }
+  };
+
+  const handleDeleteSong = async (songId) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/song/${songId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      alert("Song deleted successfully!");
+      fetchSongs();
+    } catch (error) {
+      console.error("Error deleting song:", error);
     }
   };
 
   return (
     <div className="flex h-screen w-screen bg-gray-100">
-      {/* Sidebar */}
-      <div className="w-64 bg-purple-900 text-white flex flex-col">
-        <h1 className="text-xl font-bold p-4">🎵 Music Admin</h1>
-        <nav className="flex flex-col gap-2 p-4">
-          <button
-            onClick={() => setSelectedSection("details")}
-            className="text-left py-2 px-4 rounded hover:bg-purple-700 h-50 w-50"
-          >
-            Details
-          </button>
-          <button
-            onClick={() => setSelectedSection("artists")}
-            className="text-left py-2 px-4 rounded hover:bg-purple-700 h-50 w-50"
-          >
-            Artists
-          </button>
-          <button
-            onClick={() => setSelectedSection("playlist")}
-            className="text-left py-2 px-4 rounded hover:bg-purple-700 h-50 w-50"
-          >
-            Playlist
-          </button>
-          <button
-            onClick={() => setSelectedSection("songs")}
-            className="text-left py-2 px-4 rounded hover:bg-purple-700 h-50 w-50"
-          >
-            Songs
-          </button>
-          <button
-            onClick={() => setSelectedSection("settings")}
-            className="text-left py-2 px-4 rounded hover:bg-purple-700 h-50 w-50"
-          >
-            Settings
-          </button>
-          <button
-            onClick={() =>handleLogout()}
-            className="text-left py-2 px-4 rounded hover:bg-purple-700 h-50 w-50"
-          >
-            Logout
-          </button>
-        </nav>
-      </div>
+      <Sidebar setSelectedSection={setSelectedSection} logout={logout} />
 
-      {/* Main Content */}
       <div className="flex-1 p-6">
-        {/* Dashboard Section */}
-        {selectedSection === "dashboard" && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {/* Card 1 */}
-            <div className="bg-white p-6 rounded-lg shadow flex flex-col w-40 h-40">
-              <h2 className="text-lg font-semibold">Total Users</h2>
-              <p className="text-3xl font-bold">100</p>
-            </div>
-            {/* Card 2 */}
-            <div className="bg-white p-6 rounded-lg shadow flex flex-col w-40 h-40">
-              <h2 className="text-lg font-semibold">Total Songs</h2>
-              <p className="text-3xl font-bold">100</p>
-            </div>
-            {/* Card 3 */}
-            <div className="bg-white p-6 rounded-lg shadow flex flex-col w-40 h-40">
-              <h2 className="text-lg font-semibold">Revenue</h2>
-              <p className="text-3xl font-bold">100</p>
+        {selectedSection === "details" && !editingSong && (
+          <SongForm fetchSongs={fetchSongs} />
+        )}
+
+        {selectedSection === "songs" && (
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h2 className="text-xl font-semibold mb-4">🎶 All Songs</h2>
+            <div className="space-y-2">
+              {songs.map((song, index) => (
+                <div
+                  key={song._id}
+                  className="flex items-center hover:bg-gray-100 p-2 rounded-lg transition-colors"
+                >
+                  <div className="w-8 text-gray-400">{index + 1}</div>
+                  
+                  {editingSong === song._id ? (
+                    <div className="flex-1">
+                      <SongForm
+                        fetchSongs={fetchSongs}
+                        initialData={song}
+                        onSubmit={(updatedDetails) =>
+                          handleUpdateSong(song._id, updatedDetails)
+                        }
+                      />
+                      <button
+                        onClick={() => setEditingSong(null)}
+                        className="bg-red-500 text-white py-1 px-4 rounded mt-2 ml-2"
+                      >
+                        ❌ Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex-1 flex items-center">
+                        <div className="flex-1 flex items-center justify-between">
+                          <div className="flex-1">
+                            <CustomAudioPlayer
+                              src={song.audio}
+                              thumbnail={song.thumbnail}
+                              title={song.title}
+                              singer={song.singer}
+                            />
+                          </div>
+
+                          <div className="flex gap-2 ml-4">
+                            <button
+                              onClick={() => setEditingSong(song._id)}
+                              className="bg-purple-600 text-white py-1 px-3 rounded hover:bg-purple-700 transition-colors"
+                            >
+                              ✏️ Edit
+                            </button>
+                            <button
+                              onClick={() => setDeletingSong(song._id)}
+                              className="bg-purple-500 text-white py-1 px-3 rounded hover:bg-purple-600 transition-colors"
+                            >
+                              🗑 Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         )}
-
-        {/* Details Section */}
-
-        <div className="flex-1 p-6">
-          {selectedSection === "details" && (
-            <div className="bg-white p-6 rounded-lg shadow">
-              <h2 className="text-xl font-semibold">Add Song</h2>
-
-              {/* Form to Add Song */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                <input
-                  type="text"
-                  name="name"
-                  value={newSong.name}
-                  onChange={handleInputChange}
-                  placeholder="Song Name"
-                  className="border p-2 rounded"
-                  required
-                />
-
-                {/* Artist Dropdown */}
-                <select
-                  name="artist"
-                  value={newSong.artist}
-                  onChange={handleInputChange}
-                  className="border p-2 rounded"
-                >
-                  {artists.map((artist, index) => (
-                    <option key={index} value={artist}>
-                      {artist}
-                    </option>
-                  ))}
-                </select>
-
-                <input
-                  type="text"
-                  name="picture"
-                  value={newSong.picture}
-                  onChange={handleInputChange}
-                  placeholder="Picture URL"
-                  className="border p-2 rounded"
-                  required
-                />
-
-                {/* Genre Dropdown */}
-                <select
-                  name="genre"
-                  value={newSong.genre}
-                  onChange={handleInputChange}
-                  className="border p-2 rounded"
-                >
-                  {genres.map((genre, index) => (
-                    <option key={index} value={genre}>
-                      {genre}
-                    </option>
-                  ))}
-                </select>
-
-                {/* Language Dropdown */}
-                <select
-                  name="language"
-                  value={newSong.language}
-                  onChange={handleInputChange}
-                  className="border p-2 rounded"
-                >
-                  {languages.map((lang, index) => (
-                    <option key={index} value={lang}>
-                      {lang}
-                    </option>
-                  ))}
-                </select>
-
-                {/* Mood Dropdown */}
-                <select
-                  name="mood"
-                  value={newSong.mood}
-                  onChange={handleInputChange}
-                  className="border p-2 rounded"
-                >
-                  {moods.map((mood, index) => (
-                    <option key={index} value={mood}>
-                      {mood}
-                    </option>
-                  ))}
-                </select>
-
-                {/* Weather Dropdown */}
-                <select
-                  name="weather"
-                  value={newSong.weather}
-                  onChange={handleInputChange}
-                  className="border p-2 rounded"
-                >
-                  {weatherOptions.map((weather, index) => (
-                    <option key={index} value={weather}>
-                      {weather}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <button
-                onClick={handleAddSong}
-                className="bg-blue-500 text-white py-2 px-4 rounded mt-4"
-              >
-                ➕ Add Song
-              </button>
-
-              {/* Song List */}
-              {songs.length > 0 && (
-                <div className="mt-6">
-                  <h2 className="text-xl font-semibold">Songs List</h2>
-                  <table className="w-full border-collapse border border-gray-300 mt-2">
-                    <thead>
-                      <tr className="bg-gray-200">
-                        <th className="border p-2">Picture</th>
-                        <th className="border p-2">Name</th>
-                        <th className="border p-2">Artist</th>
-                        <th className="border p-2">Genre</th>
-                        <th className="border p-2">Mood</th>
-                        <th className="border p-2">Language</th>
-                        <th className="border p-2">Weather</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {songs.map((song, index) => (
-                        <tr key={index}>
-                          <td className="border p-2">
-                            {song.picture ? (
-                              <img
-                                src={song.picture}
-                                alt="Song"
-                                className="w-10 h-10"
-                              />
-                            ) : (
-                              "N/A"
-                            )}
-                          </td>
-                          <td className="border p-2">{song.name}</td>
-                          <td className="border p-2">{song.artist}</td>
-                          <td className="border p-2">{song.genre}</td>
-                          <td className="border p-2">{song.mood}</td>
-                          <td className="border p-2">{song.language}</td>
-                          <td className="border p-2">{song.weather}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
       </div>
+
+      {/* Edit Song Modal */}
+      {editingSong && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-11/12 sm:w-1/2">
+            <h2 className="text-xl font-semibold">Edit Song</h2>
+            <SongForm
+              fetchSongs={fetchSongs}
+              initialData={songs.find((song) => song._id === editingSong)}
+              onSubmit={(updatedDetails) =>
+                handleUpdateSong(editingSong, updatedDetails)
+              }
+            />
+            <button
+              onClick={() => setEditingSong(null)}
+              className="bg-red-500 text-white py-2 px-4 rounded mt-4 w-full"
+            >
+              ❌ Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Song Modal */}
+      {deletingSong && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-11/12 sm:w-1/2">
+            <h2 className="text-xl font-semibold">Are you sure?</h2>
+            <p className="text-sm text-gray-600 mt-2">
+              You are about to delete this song.
+            </p>
+            <div className="flex justify-between mt-4">
+              <button
+                onClick={() => {
+                  handleDeleteSong(deletingSong);
+                  setDeletingSong(null);
+                }}
+                className="bg-red-500 text-white py-2 px-4 rounded"
+              >
+                Yes, Delete
+              </button>
+              <button
+                onClick={() => setDeletingSong(null)}
+                className="bg-gray-300 text-gray-800 py-2 px-4 rounded"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
