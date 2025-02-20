@@ -12,10 +12,13 @@ import DashboardPage from "./pages/DashboardPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import AdminDashboard from "./pages/AdminDashboard";
+import Home from "./pages/Home";
 
 // Auth Store
 import { useAuthStore } from "./store/authStore";
 import LanguageSelector from "./pages/LanguageSelector";
+import PlayList from "./pages/PlayList";
+//import { Home } from "lucide-react";
 
 // Protected Routes
 const ProtectedRoute = ({ children }) => {
@@ -203,15 +206,32 @@ function App() {
 
    <Route
         path="/LanguageSelector"
-        element={
-          
+        element={ 
           <ProtectedRoute>
            <LanguageSelector/>
           </ProtectedRoute>
-
-
-        }
+         }
       />
+ <Route
+        path="/Home"
+        element={ 
+          <ProtectedRoute>
+            <DashboardLayout>
+  
+           <Home/>
+           </DashboardLayout>
+          </ProtectedRoute>
+         }
+      />
+      <Route
+        path="/PlayList"
+        element={ 
+          <ProtectedRoute>
+           <PlayList/>
+          </ProtectedRoute>
+         }
+      />
+
   
       {/* Dashboard Route */}
       <Route
@@ -219,9 +239,9 @@ function App() {
         element={
           <ProtectedRoute>
             <NotAdminRoute >
-            <DashboardLayout>
-              <DashboardPage />
-            </DashboardLayout>
+            
+              <DashboardPage/>
+            
             </NotAdminRoute>
           </ProtectedRoute>
         }
