@@ -8,6 +8,7 @@ import { connectDB } from "./db/connectDB.js";
 import { verifyToken } from "./middleware/verifyToken.js"; // Import JWT verification middleware
 import authRoutes from "./routes/auth.route.js";
 import songRoutes from "./routes/songRoutes.js"
+import playlistRoutes from "./routes/playlistRoutes.js";
 
 dotenv.config();
 
@@ -24,6 +25,8 @@ app.use(cookieParser()); // Allows us to parse cookies (if needed for JWT)
 // Authentication routes
 app.use("/api/auth", authRoutes);
 app.use("/api/song", songRoutes);
+app.use("/api/playlist", playlistRoutes);
+
 
 // Example of a protected route (that requires JWT)
 app.get("/api/protected", verifyToken, (req, res) => {
