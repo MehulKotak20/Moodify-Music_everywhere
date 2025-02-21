@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Layout from "../components/Layout";
 //import { SongData } from "../context/Song";
 import { assets } from "../assets/assets";
-import { FaBookmark, FaPlay } from "react-icons/fa";
+ import { FaBookmark, FaPlay } from "react-icons/fa";
 //import { UserData } from "../context/User";
 
 const PlayList = () => {

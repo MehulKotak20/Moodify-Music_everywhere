@@ -225,10 +225,7 @@ function App() {
         path="/Home"
         element={ 
           <ProtectedRoute>
-            <DashboardLayout>
-  
            <Home/>
-           </DashboardLayout>
           </ProtectedRoute>
          }
       />

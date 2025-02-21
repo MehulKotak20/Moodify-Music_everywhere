@@ -1,138 +1,148 @@
-import React, { useEffect, useRef, useState, useContext } from "react";
-//import  SongContext  from "../context/Song"; 
-import { GrChapterNext, GrChapterPrevious } from "react-icons/gr";
-import { FaPause, FaPlay } from "react-icons/fa";
+import React, { useState, useEffect, useRef } from "react";
+import { FaPlay, FaPause, FaStepBackward, FaStepForward } from "react-icons/fa";
+import { BsMusicNoteBeamed } from "react-icons/bs";
 
-const Player = () => {
-  // const songData = useContext(SongContext);
+const Player = ({ song, setSong, playNext }) => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [history, setHistory] = useState([]); // Stack to track previously played songs
+  const audioRef = useRef(new Audio());
 
-  // if (!songData) {
-  //   console.error("SongContext is undefined");
-  //   return <p>Loading song data...</p>;
-  // }
+  // Load new song when `song` changes
+  useEffect(() => {
+    if (song) {
+      if (audioRef.current.src !== song.audio) {
+        audioRef.current.src = song.audio;
+        audioRef.current.load();
+      }
 
-  // const { 
-  //   song, 
-  //   fetchSingleSong, 
-  //   selectedSong, 
-  //   isPlaying, 
-  //   setIsPlaying, 
-  //   nextMusic, 
-  //   prevMusic 
-  // } = songData;
+      const playPromise = audioRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => setIsPlaying(true))
+          .catch((error) => console.error("Error playing song:", error));
+      }
 
-  // useEffect(() => {
-  //   if (selectedSong) {
-  //     fetchSingleSong();
-  //   }
-  // }, [selectedSong]);
+      setCurrentTime(0);
+    }
+  }, [song]);
 
-  // const audioRef = useRef(null);
+  // Update current time and duration
+  useEffect(() => {
+    const audio = audioRef.current;
 
-  // const handlePlayPause = () => {
-  //   if (audioRef.current) {
-  //     if (isPlaying) {
-  //       audioRef.current.pause();
-  //     } else {
-  //       audioRef.current.play();
-  //     }
-  //     setIsPlaying(!isPlaying);
-  //   }
-  // };
+    const updateTime = () => setCurrentTime(audio.currentTime);
+    const updateDuration = () => setDuration(audio.duration || 0);
 
-  // const [volume, setVolume] = useState(1);
-  // const [progress, setProgress] = useState(0);
-  // const [duration, setDuration] = useState(0);
+    audio.addEventListener("timeupdate", updateTime);
+    audio.addEventListener("loadedmetadata", updateDuration);
+    audio.addEventListener("ended", handleNext);
 
-  // useEffect(() => {
-  //   const audio = audioRef.current;
-  //   if (!audio) return;
+    return () => {
+      audio.removeEventListener("timeupdate", updateTime);
+      audio.removeEventListener("loadedmetadata", updateDuration);
+      audio.removeEventListener("ended", handleNext);
+    };
+  }, []);
 
-  //   const handleLoadedMetaData = () => setDuration(audio.duration);
-  //   const handleTimeUpdate = () => setProgress(audio.currentTime);
+  // Play/Pause toggle
+  const togglePlayPause = () => {
+    if (!song) return;
 
-  //   audio.addEventListener("loadedmetadata", handleLoadedMetaData);
-  //   audio.addEventListener("timeupdate", handleTimeUpdate);
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
+    }
+    setIsPlaying(!isPlaying);
+  };
 
-  //   return () => {
-  //     audio.removeEventListener("loadedmetadata", handleLoadedMetaData);
-  //     audio.removeEventListener("timeupdate", handleTimeUpdate);
-  //   };
-  // }, [song]);
+  // Seek functionality
+  const handleSeek = (e) => {
+    const newTime = e.target.value;
+    audioRef.current.currentTime = newTime;
+    setCurrentTime(newTime);
+  };
 
-  // const handleProgressChange = (e) => {
-  //   const newTime = (e.target.value / 100) * duration;
-  //   if (audioRef.current) {
-  //     audioRef.current.currentTime = newTime;
-  //   }
-  //   setProgress(newTime);
-  // };
+ const handleNext = () => {
+   if (song) {
+     setHistory((prev) => [...prev, song]); // Store current song in history
+   }
+   setIsPlaying(false);
+   playNext(); // Move to the next song in the queue
+ };
+
+
+ const handlePrevious = () => {
+  if (history.length > 0) {
+    const previousSong = history[history.length - 1]; // Get last played song
+    setHistory((prev) => prev.slice(0, prev.length - 1)); // Remove last song from history
+    setSong(previousSong); // Play the previous song
+  }
+};
+
+
+  // Format time (mm:ss)
+  const formatTime = (time) => {
+    if (isNaN(time)) return "0:00";
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+  };
 
   return (
-    <div>
-      {(
-        <div className="h-[10%] bg-black flex justify-between items-center text-white px-4">
-          <div className="lg:flex items-center gap-4">
-            <img
-              // src={song.thumbnail ? song.thumbnail.url : "https://via.placeholder.com/50"}
-              className="w-12"
-              alt="Song Thumbnail"
-            />
-            <div className="hidden md:block">
-              {/* <p>{song.title}</p>
-              <p>{song.description ? song.description.slice(0, 30) + "..." : ""}</p> */}
-            </div>
-          </div>
-
-          <div className="flex flex-col items-center gap-1 m-auto">
-            {/* {song?.audio && (
-              <audio ref={audioRef} src={song.audio.url} autoPlay={isPlaying} />
-            )} */}
-
-            <div className="w-full flex items-center font-thin text-green-400">
-              <input
-                type="range"
-                min="0"
-                max="100"
-                className="progress-bar w-[120px] md:w-[300px]"
-               // value={duration ? (progress / duration) * 100 : 0}
-                //  onChange={handleProgressChange}
-              />
-            </div>
-
-            <div className="flex justify-center items-center gap-4">
-              <span className="cursor-pointer"//</div> onClick={prevMusic}
-              >
-                <GrChapterPrevious />
-              </span>
-              <button
-                className="bg-white text-black rounded-full p-2"
-               // onClick={handlePlayPause}
-              >
-                {/* {isPlaying ? <FaPause /> : <FaPlay />} */}
-              </button>
-              <span className="cursor-pointer"
-               //onClick={nextMusic}
-               >
-                <GrChapterNext />
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center">
-            <input
-              type="range"
-              className="w-16 md:w-32"
-              min="0"
-              max="1"
-              step="0.01"
-              //value={volume}
-             // onChange={(e) => setVolume(e.target.value)}
-            />
+    song && (
+      <div className="fixed bottom-0 left-0 w-full bg-[#181818] text-white p-4 flex items-center justify-between shadow-lg">
+        {/* Song Details */}
+        <div className="flex items-center">
+          <BsMusicNoteBeamed size={30} className="text-green-400 mr-3" />
+          <div>
+            <p className="text-lg font-semibold">{song.title}</p>
+            <p className="text-sm text-gray-400">
+              {song.singer} • {song.genre}
+            </p>
           </div>
         </div>
-      )}
-    </div>
+
+        {/* Controls */}
+        <div className="flex items-center space-x-6">
+          <button
+            onClick={handlePrevious}
+            className="text-gray-400 hover:text-white"
+            disabled={history.length === 0}
+          >
+            <FaStepBackward size={22} />
+          </button>
+          <button
+            onClick={togglePlayPause}
+            className="bg-green-500 p-3 rounded-full hover:bg-green-600 transition"
+          >
+            {isPlaying ? <FaPause size={22} /> : <FaPlay size={22} />}
+          </button>
+          <button
+            onClick={handleNext}
+            className="text-gray-400 hover:text-white"
+          >
+            <FaStepForward size={22} />
+          </button>
+        </div>
+
+        {/* Seek Bar */}
+        <div className="flex items-center space-x-2 w-[30%]">
+          <span className="text-xs">{formatTime(currentTime)}</span>
+          <input
+            type="range"
+            min="0"
+            max={duration || 0}
+            value={currentTime}
+            onChange={handleSeek}
+            className="w-full cursor-pointer"
+          />
+          <span className="text-xs">{formatTime(duration)}</span>
+        </div>
+      </div>
+    )
   );
 };
 
