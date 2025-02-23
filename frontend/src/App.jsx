@@ -18,11 +18,10 @@ import Home from "./pages/Home";
 import { useAuthStore } from "./store/authStore";
 
 
-import PlayList from "./pages/PlayList";
-
 
 
 import LanguagePreference from "./pages/LanguagePreference";
+import PlaylistPage from "./pages/PlaylistPage";
 
 
 // Protected Routes
@@ -233,7 +232,7 @@ function App() {
         path="/PlayList"
         element={ 
           <ProtectedRoute>
-           <PlayList/>
+           <PlaylistPage/>
           </ProtectedRoute>
          }
       />

@@ -1,11 +1,23 @@
 import React from "react";
 import { assets } from "../assets/assets";
 import { useNavigate } from "react-router-dom";
-//import { UserData } from "../context/User";
+import { useAuthStore } from "../store/authStore";
+
+
+ 
+
+  
 
 const Navbar = () => {
   const navigate = useNavigate();
  // const { logoutUser } = UserData();
+
+  const { user, logout } = useAuthStore();
+  const handleLogout = () => {
+    logout();
+  };
+
+
   return (
     <>
       <div className="w-full flex justify-between items-center font-semibold">
@@ -32,7 +44,7 @@ const Navbar = () => {
           </p>
           <p
             className="bg-white text-black text-[15px] px-4 py-1 rounded-2xl cursor-pointer"
-   //         onClick={logoutUser}
+             onClick={handleLogout}
           >
             Logout
           </p>
@@ -49,7 +61,7 @@ const Navbar = () => {
           Podcasts
         </p>
         <p
-     //     onClick={() => navigate("/playlist")}
+          //     onClick={() => navigate("/playlist")}
           className="bg-black px-4 py-1 rounded-2xl cursor-pointer  md:hidden"
         >
           PlayList

@@ -15,7 +15,12 @@ const Layout = () => {
   useEffect(() => {
     const fetchSongs = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/song/all");
+        const response = await axios.get("http://localhost:5000/api/song/all",{
+          headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        }
+        );
         setSongs(response.data);
       } catch (error) {
         console.error("Error fetching songs:", error);

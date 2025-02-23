@@ -55,7 +55,7 @@ router.get(
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "Lax",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
@@ -64,7 +64,5 @@ router.get(
     return res.redirect(`${process.env.CLIENT_URL}/`);
   }
 );
-
-
 
 export default router;
