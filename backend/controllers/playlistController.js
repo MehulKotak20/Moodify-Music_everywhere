@@ -2,14 +2,9 @@ import { Playlist } from "../models/playlistModel.js"; // Import Playlist schema
 
 export const createPlaylist = async (req, res) => {
   try {
-    const { name, songs } = req.body;
-
-    if (!req.userId) {
-      return res.status(401).json({ message: "Unauthorized - No user ID" });
-    }
-
+    const { name, songs } = req.body
     const newPlaylist = new Playlist({
-      userId: req.userId, // Use req.userId instead of req.user.id
+      userId: req.user.id,
       name,
       songs,
     });
@@ -20,9 +15,7 @@ export const createPlaylist = async (req, res) => {
       playlist: newPlaylist,
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error creating playlist", error: error.message });
+    res.status(500).json({ message: "Error creating playlist", error: error.message });
   }
 };
 
@@ -87,8 +80,7 @@ export const getUserPlaylists = async (req, res) => {
 
     res.status(200).json(playlists); // Send populated playlists
   } catch (error) {
-    console.error("Error fetching playlists:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Error fetching playlists", error: error.message });
   }
 };
 
