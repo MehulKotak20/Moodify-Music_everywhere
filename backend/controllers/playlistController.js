@@ -2,12 +2,17 @@ import { Playlist } from "../models/playlistModel.js"; // Import Playlist schema
 
 export const createPlaylist = async (req, res) => {
   try {
-    const { name, songs } = req.body
-    const newPlaylist = new Playlist({
-      userId: req.user.id,
-      name,
-      songs,
-    });
+   const { name, songs } = req.body;
+
+   if (!req.userId) {
+     return res.status(401).json({ message: "Unauthorized - No user ID" });
+   }
+
+   const newPlaylist = new Playlist({
+     userId: req.userId, // Use req.userId instead of req.user.id
+     name,
+     songs,
+   });
 
     await newPlaylist.save();
     res.status(201).json({
