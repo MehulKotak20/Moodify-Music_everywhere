@@ -21,6 +21,7 @@ import { useAuthStore } from "./store/authStore";
 
 
 import LanguagePreference from "./pages/LanguagePreference";
+import Navbar from "./components/Navbar";
 
 
 // Protected Routes
@@ -124,16 +125,9 @@ const AuthLayout = ({ children }) => (
 
 // Dashboard Layout for Authenticated Pages
 const DashboardLayout = ({ children }) => (
-  <div
-    className="min-h-screen"
-    style={{
-      backgroundImage: "url('./Images/punjab.jpg')",
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-      backgroundRepeat: "no-repeat",
-    }}
-  >
-    <div className="bg-black bg-opacity-50 min-h-screen">{children}</div>
+  <div>
+    <Navbar/>
+   {children}
   </div>
 );
 
@@ -223,7 +217,9 @@ function App() {
         path="/Home"
         element={ 
           <ProtectedRoute>
+            
            <Home/>
+           
           </ProtectedRoute>
          }
       />

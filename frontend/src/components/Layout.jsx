@@ -32,7 +32,28 @@ const Layout = () => {
 
     fetchSongs();
   }, []);
+const getSimilarSongs = (song) => {
+  if (!song || !songs.length) return [];
 
+  const filteredSongs = songs.filter(
+    (s) => s._id !== song._id && !playedSongs.has(s._id) // Exclude current and played songs
+  );
+
+  return filteredSongs.sort((a, b) => {
+    let scoreA = 0,
+      scoreB = 0;
+
+    if (a.singer === song.singer) scoreA += 3;
+    if (a.language === song.language) scoreA += 2;
+    if (a.genre === song.genre) scoreA += 1;
+
+    if (b.singer === song.singer) scoreB += 3;
+    if (b.language === song.language) scoreB += 2;
+    if (b.genre === song.genre) scoreB += 1;
+
+    return scoreB - scoreA;
+  });
+};
   // 🎵 Play a song & update queue
   const playSong = (song) => {
     setCurrentSong(song);
