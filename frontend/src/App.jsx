@@ -21,7 +21,7 @@ import { useAuthStore } from "./store/authStore";
 
 
 import LanguagePreference from "./pages/LanguagePreference";
-import PlaylistPage from "./pages/PlaylistPage";
+//import PlaylistPage from "./pages/PlaylistPage";
 
 
 // Protected Routes
@@ -228,14 +228,14 @@ function App() {
           </ProtectedRoute>
          }
       />
-      <Route
+      {/* <Route
         path="/PlayList"
         element={ 
           <ProtectedRoute>
            <PlaylistPage/>
           </ProtectedRoute>
          }
-      />
+      /> */}
 
   
       {/* Dashboard Route */}
