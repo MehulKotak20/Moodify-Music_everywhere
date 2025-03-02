@@ -11,6 +11,7 @@ const Sidebar_ = () => {
 
   useEffect(() => {
     const token = localStorage.getItem("token") || Cookies.get("token");
+
     axios
       .get("http://localhost:5000/api/playlist/all", {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -22,18 +23,18 @@ const Sidebar_ = () => {
 
   const generatePlaylistThumbnail = (playlist) => {
     const songThumbnails = playlist.songs
-      .slice(0, 4)
-      .map((song) => song.thumbnail || "default-song-image.jpg");
+      .map((song) => song?.songId?.thumbnail)
+      .filter(Boolean); // remove undefined/null thumbnails
 
     if (songThumbnails.length === 0) {
-      return "default-playlist.png";
+      return "default-playlist.png"; // No songs, show default
     }
 
-    if (songThumbnails.length === 1) {
-      return songThumbnails[0]; // Single song thumbnail
+    if (songThumbnails.length < 4) {
+      return songThumbnails[0] || "default-playlist.png"; // 1-3 songs, show first song thumbnail
     }
 
-    // Create a collage dynamically if 2-4 songs
+    // If 4 or more songs, create collage
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
 
@@ -42,7 +43,7 @@ const Sidebar_ = () => {
 
     const size = 100;
 
-    songThumbnails.forEach((src, index) => {
+    songThumbnails.slice(0, 4).forEach((src, index) => {
       const img = new Image();
       img.crossOrigin = "Anonymous";
       img.src = src;
@@ -52,11 +53,15 @@ const Sidebar_ = () => {
         const y = Math.floor(index / 2) * size;
         ctx.drawImage(img, x, y, size, size);
 
-        // Only return data URL after all images are drawn
-        if (index === songThumbnails.length - 1) {
+        // When all 4 images are loaded, generate collage URL
+        if (index === 3) {
           const collageUrl = canvas.toDataURL("image/jpeg");
-          document.getElementById(`playlist-thumbnail-${playlist._id}`).src =
-            collageUrl;
+          const imgElement = document.getElementById(
+            `playlist-thumbnail-${playlist._id}`
+          );
+          if (imgElement) {
+            imgElement.src = collageUrl;
+          }
         }
       };
 
@@ -65,8 +70,7 @@ const Sidebar_ = () => {
       };
     });
 
-    // Default (while images load)
-    return "default-playlist.png";
+    return songThumbnails[0] || "default-playlist.png"; // While loading collage, show first thumbnail
   };
 
   return (
@@ -119,9 +123,7 @@ const Sidebar_ = () => {
                 />
                 <div>
                   <p className="font-semibold text-white">{playlist.name}</p>
-                  <p className="text-sm text-gray-400">
-                    Playlist • {playlist.creator}
-                  </p>
+                  <p className="text-sm text-gray-400">Playlist</p>
                 </div>
               </div>
             ))
@@ -131,7 +133,12 @@ const Sidebar_ = () => {
         </div>
       </div>
 
-      {showModal && <CreatePlaylistModal onClose={() => setShowModal(false)} />}
+      {showModal && (
+        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          {/* Your CreatePlaylistModal component can go here */}
+          <div className="bg-white p-5 rounded">Create Playlist Modal</div>
+        </div>
+      )}
     </div>
   );
 };
