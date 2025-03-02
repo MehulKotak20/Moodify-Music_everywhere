@@ -3,6 +3,7 @@ import { assets } from "../assets/assets";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Cookies from "js-cookie";
+import CreatePlaylistModal from "./CreatePlaylistModal";
 
 const Sidebar_ = () => {
   const navigate = useNavigate();
@@ -133,12 +134,7 @@ const Sidebar_ = () => {
         </div>
       </div>
 
-      {showModal && (
-        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          {/* Your CreatePlaylistModal component can go here */}
-          <div className="bg-white p-5 rounded">Create Playlist Modal</div>
-        </div>
-      )}
+      {showModal && <CreatePlaylistModal onClose={() => setShowModal(false)} />}
     </div>
   );
 };
