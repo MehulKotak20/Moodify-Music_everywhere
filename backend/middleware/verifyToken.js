@@ -1,32 +1,52 @@
 import jwt from "jsonwebtoken";
+import { OAuth2Client } from "google-auth-library";
+import dotenv from "dotenv";
 
-export const verifyToken = (req, res, next) => {
-  // First, try to get the token from the Authorization header
+dotenv.config();
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+export const verifyToken = async (req, res, next) => {
   let token = req.headers.authorization?.split(" ")[1];
+    console.log("Extracted 1 Token:", token);
 
-  // If no token in the header, check for the token in cookies (for Google login)
   if (!token) {
-    token = req.cookies.token;
+    token = req.cookies.token; // Check in cookies
+      console.log("Extracted 2 Token:", token);
   }
 
-  // If no token is found, return unauthorized error
   if (!token) {
+    console.log("No token provided in request!");
     return res
       .status(401)
       .json({ success: false, message: "Unauthorized - no token provided" });
   }
 
+  console.log("Extracted Token:", token);
+
   try {
-    // Decode the token using JWT and secret key
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    let decoded;
 
-    // Attach user data to the request object
-    req.userId = decoded.userId; // Ensure this key matches what you are setting in the token
-    req.isAdmin = decoded.isAdmin; // Ensure isAdmin is set in your token if you have it
+    if (token.startsWith("ey")) {
+      // Normal JWT from our backend
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } else if (token.length > 100) {
+      // Google OAuth Token (Google ID tokens are usually long)
+      const ticket = await client.verifyIdToken({
+        idToken: token,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+      decoded = ticket.getPayload();
+    } else {
+      throw new Error("Invalid token format");
+    }
 
-    next(); // Move to the next middleware
+    req.userId = decoded.userId || decoded.sub; // Google uses "sub" instead of "userId"
+    req.isAdmin = decoded.isAdmin || false;
+
+    next();
   } catch (error) {
-    console.log("Error in verifyToken:", error);
+    console.error("Error in verifyToken:", error.message);
     return res
       .status(401)
       .json({ success: false, message: "Unauthorized - invalid token" });

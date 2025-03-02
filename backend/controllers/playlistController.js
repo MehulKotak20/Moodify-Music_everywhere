@@ -1,4 +1,4 @@
-import {Playlist} from "../models/playlistModel.js"; // Import Playlist schema
+import { Playlist } from "../models/playlistModel.js"; // Import Playlist schema
 
 export const createPlaylist = async (req, res) => {
   try {
@@ -10,7 +10,10 @@ export const createPlaylist = async (req, res) => {
     });
 
     await newPlaylist.save();
-    res.status(201).json({ message: "Playlist created successfully", playlist: newPlaylist });
+    res.status(201).json({
+      message: "Playlist created successfully",
+      playlist: newPlaylist,
+    });
   } catch (error) {
     res.status(500).json({ message: "Error creating playlist", error: error.message });
   }
@@ -23,7 +26,9 @@ export const updatePlaylist = async (req, res) => {
     const playlist = await Playlist.findById(req.params.id);
 
     if (!playlist || playlist.userId.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Unauthorized or playlist not found" });
+      return res
+        .status(403)
+        .json({ message: "Unauthorized or playlist not found" });
     }
 
     if (name) playlist.name = name;
@@ -32,7 +37,9 @@ export const updatePlaylist = async (req, res) => {
     await playlist.save();
     res.json({ message: "Playlist updated successfully", playlist });
   } catch (error) {
-    res.status(500).json({ message: "Error updating playlist", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Error updating playlist", error: error.message });
   }
 };
 
@@ -42,21 +49,36 @@ export const deletePlaylist = async (req, res) => {
     const playlist = await Playlist.findById(req.params.id);
 
     if (!playlist || playlist.userId.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Unauthorized or playlist not found" });
+      return res
+        .status(403)
+        .json({ message: "Unauthorized or playlist not found" });
     }
 
     await playlist.deleteOne();
     res.json({ message: "Playlist deleted successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Error deleting playlist", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Error deleting playlist", error: error.message });
   }
 };
 
-// Get all playlists for a user
+// Get all playlists for a user (with song thumbnails, titles, etc.)
 export const getUserPlaylists = async (req, res) => {
   try {
-    const playlists = await Playlist.find({ userId: req.user.id });
-    res.json(playlists);
+    const userId = req.userId; // User ID from authenticated token
+
+    const playlists = await Playlist.find({ userId }).populate({
+      path: "songs.songId",
+      select: "title thumbnail artist", // Include fields you actually need
+    });
+
+    if (!playlists.length) {
+      console.log("No playlists found for user");
+      return res.status(200).json([]); // Send empty array if nothing exists
+    }
+
+    res.status(200).json(playlists); // Send populated playlists
   } catch (error) {
     res.status(500).json({ message: "Error fetching playlists", error: error.message });
   }
@@ -66,13 +88,17 @@ export const getUserPlaylists = async (req, res) => {
 export const getSinglePlaylist = async (req, res) => {
   try {
     const playlist = await Playlist.findById(req.params.id);
-    
+
     if (!playlist || playlist.userId.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Unauthorized or playlist not found" });
+      return res
+        .status(403)
+        .json({ message: "Unauthorized or playlist not found" });
     }
 
     res.json(playlist);
   } catch (error) {
-    res.status(500).json({ message: "Error fetching playlist", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Error fetching playlist", error: error.message });
   }
 };
