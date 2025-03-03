@@ -115,6 +115,7 @@ const Sidebar_ = () => {
                 key={playlist._id}
                 className="flex items-center gap-3 p-2 hover:bg-gray-800 rounded cursor-pointer"
                 onClick={() => navigate(`/playlist/${playlist._id}`)}
+                // onClick={playlistlayout(playlist._id)}
               >
                 <img
                   id={`playlist-thumbnail-${playlist._id}`}
