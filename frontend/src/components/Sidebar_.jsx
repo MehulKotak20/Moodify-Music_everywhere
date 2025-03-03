@@ -5,7 +5,7 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import CreatePlaylistModal from "./CreatePlaylistModal";
 
-const Sidebar_ = () => {
+const Sidebar_ = ({fetchPlayListId}) => {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [playlists, setPlaylists] = useState([]);
@@ -114,7 +114,7 @@ const Sidebar_ = () => {
               <div
                 key={playlist._id}
                 className="flex items-center gap-3 p-2 hover:bg-gray-800 rounded cursor-pointer"
-                onClick={() => navigate(`/playlist/${playlist._id}`)}
+                onClick={()=>fetchPlayListId(playlist._id)}
               >
                 <img
                   id={`playlist-thumbnail-${playlist._id}`}
@@ -133,7 +133,6 @@ const Sidebar_ = () => {
           )}
         </div>
       </div>
-
       {showModal && <CreatePlaylistModal onClose={() => setShowModal(false)} />}
     </div>
   );

@@ -89,21 +89,39 @@ export const getUserPlaylists = async (req, res) => {
   }
 };
 
-// Get a single playlist
 export const getSinglePlaylist = async (req, res) => {
   try {
-    const playlist = await Playlist.findById(req.params.id);
+    const playlist = await Playlist.findById(req.params.id).populate({
+      path: "songs.songId", // Populate the songId field
+      select: "title thumbnail singer audio duration", // Use 'singer' instead of 'artist'
+    });
 
-    if (!playlist || playlist.userId.toString() !== req.user.id) {
-      return res
-        .status(403)
-        .json({ message: "Unauthorized or playlist not found" });
+    if (!playlist || playlist.userId.toString() !== req.userId) {
+      return res.status(403).json({ message: "Unauthorized or playlist not found" });
     }
 
-    res.json(playlist);
+    // Debugging: Log the playlist response
+    console.log("Fetched Playlist:", JSON.stringify(playlist, null, 2));
+
+    const formattedPlaylist = {
+      _id: playlist._id,
+      name: playlist.name,
+      thumbnail: playlist.thumbnail || "default-playlist.png",
+      songs: playlist.songs
+        .filter((s) => s.songId) // Ensure the song exists
+        .map((s) => ({
+          _id: s.songId._id,
+          title: s.songId.title,
+          thumbnail: s.songId.thumbnail || "default-thumbnail.png",
+          singer: s.songId.singer || "Unknown Singer",
+          audio: s.songId.audio,
+        })),
+    };
+
+    res.json(formattedPlaylist);
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error fetching playlist", error: error.message });
+    res.status(500).json({ message: "Error fetching playlist", error: error.message });
   }
 };
+
+
