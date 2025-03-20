@@ -47,10 +47,10 @@ export const signup = async (req, res) => {
     });
 
     await user.save();
- const adminEmails = process.env.ADMIN_EMAILS.split(",");
- const isAdmin = adminEmails.includes(email);
+    const adminEmails = process.env.ADMIN_EMAILS.split(",");
+    const isAdmin = adminEmails.includes(email);
 
- const token = generateTokenAndSetCookie(user._id, isAdmin);
+    const token = generateTokenAndSetCookie(user._id, isAdmin);
 
     // Send verification email
     await sendVerificationEmail(user.email, verificationToken);
@@ -58,7 +58,7 @@ export const signup = async (req, res) => {
     // Convert user to plain object and exclude sensitive fields
     const userObj = user.toObject();
     delete userObj.password;
-
+// await sendWelcomeEmail(user.email,user.name);
     res.status(201).json({
       success: true,
       message: "User created successfully",
@@ -165,12 +165,13 @@ export const forgotPassword = async (req, res) => {
         .status(400)
         .json({ success: false, message: "User not found" });
     }
-    // if (user.googleId) {
-    //   return res.status(400).json({
-    //     success: false,
-    //     message: "This account is linked with Google. Please use Google login to access your account.",
-    //   });
-    // }
+    if (user.googleId) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "This account is linked with Google. Please use Google login to access your account.",
+      });
+    }
 
     // Generate reset token
     const resetToken = crypto.randomBytes(20).toString("hex");
@@ -233,7 +234,6 @@ export const resetPassword = async (req, res) => {
 };
 
 import jwt from "jsonwebtoken";
-
 
 export const checkAuth = async (req, res) => {
   try {

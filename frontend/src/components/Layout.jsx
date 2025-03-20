@@ -3,62 +3,89 @@ import Sidebar_ from "./Sidebar_";
 import Navbar from "./Navbar";
 import Player from "./Player";
 import axios from "axios";
-import { FaPlay } from "react-icons/fa";
 import Cookies from "js-cookie";
+import SongGrid from "./SongGrid";
+import {PlaylistView} from "./PlaylistView";
+
 
 const Layout = () => {
-  const [songs, setSongs] = useState([]); // All songs
-  const [filteredSongs, setFilteredSongs] = useState([]); // Filtered songs
+  const [allSongs, setAllSongs] = useState([]); // Store all songs separately
+  const [filteredSongs, setFilteredSongs] = useState([]); // Songs currently displayed (all or playlist)
   const [currentSong, setCurrentSong] = useState(null);
   const [queue, setQueue] = useState([]);
   const [playedSongs, setPlayedSongs] = useState(new Set());
+  const [playlistid, setPlaylistid] = useState(null);
+  const [playlistData, setPlaylistData] = useState(null);
 
   useEffect(() => {
-    const fetchSongs = async () => {
-      try {
-        let token = localStorage.getItem("token") || Cookies.get("token");
-
-        const response = await axios.get("http://localhost:5000/api/song/all", {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-          withCredentials: true,
-        });
-
-        setSongs(response.data);
-        setFilteredSongs(response.data); // Initially, show all songs
-      } catch (error) {
-        console.error("Error fetching songs:", error);
-      }
-    };
-
-    fetchSongs();
+    fetchAllSongs(); // Fetch all songs once on mount
   }, []);
-const getSimilarSongs = (song) => {
-  if (!song || !songs.length) return [];
 
-  const filteredSongs = songs.filter(
-    (s) => s._id !== song._id && !playedSongs.has(s._id) // Exclude current and played songs
-  );
+  useEffect(() => {
+    if (playlistid) {
+      fetchSongsByPlaylistId();
+    } else {
+      setFilteredSongs(allSongs); // Reset to all songs if no playlist is selected
+      setPlaylistData(null);
+    }
+  }, [playlistid, allSongs]);
 
-  return filteredSongs.sort((a, b) => {
-    let scoreA = 0,
-      scoreB = 0;
+  const fetchAllSongs = async () => {
+    try {
+      let token = localStorage.getItem("token") || Cookies.get("token");
+      const response = await axios.get("http://localhost:5000/api/song/all", {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        withCredentials: true,
+      });
 
-    if (a.singer === song.singer) scoreA += 3;
-    if (a.language === song.language) scoreA += 2;
-    if (a.genre === song.genre) scoreA += 1;
+      setAllSongs(response.data);
+      setFilteredSongs(response.data); // Default to showing all songs
+    } catch (error) {
+      console.error("Error fetching songs:", error);
+    }
+  };
 
-    if (b.singer === song.singer) scoreB += 3;
-    if (b.language === song.language) scoreB += 2;
-    if (b.genre === song.genre) scoreB += 1;
+  const fetchSongsByPlaylistId = async () => {
+    try {
+      let token = localStorage.getItem("token") || Cookies.get("token");
+      const response = await axios.get(`http://localhost:5000/api/playlist/${playlistid}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        withCredentials: true,
+      });
+  
+      console.log("Playlist Data Received:", response.data); // Debug log
+  
+      const playlist = response.data;
+  
+      setPlaylistData(playlist);
+      setFilteredSongs(playlist.songs); // Songs should now have all details
+    } catch (error) {
+      console.error("Error fetching playlist songs:", error);
+    }
+  };
+  
+  
+  
+  
+  const fetchPlaylistId = (id) => {
+    setPlaylistid(id);
+  };
 
-    return scoreB - scoreA;
-  });
-};
-  // 🎵 Play a song & update queue
   const playSong = (song) => {
     setCurrentSong(song);
     setPlayedSongs((prev) => new Set([...prev, song._id]));
     setQueue(getSimilarSongs(song));
+  };
+
+  const getSimilarSongs = (song) => {
+    if (!song || !filteredSongs.length) return [];
+    return filteredSongs
+      .filter((s) => s._id !== song._id && !playedSongs.has(s._id))
+      .sort((a, b) => {
+        let scoreA = (a.singer === song.singer) * 3 + (a.language === song.language) * 2 + (a.genre === song.genre);
+        let scoreB = (b.singer === song.singer) * 3 + (b.language === song.language) * 2 + (b.genre === song.genre);
+        return scoreB - scoreA;
+      });
   };
 
   const playNext = () => {
@@ -75,82 +102,49 @@ const getSimilarSongs = (song) => {
     }
   };
 
-  // 🛠 Filter songs by name, artist, mood, and weather
   const handleSearch = (query) => {
     if (!query.trim()) {
-      setFilteredSongs(songs); // Reset if empty
+      setFilteredSongs(playlistid ? playlistData?.songs || [] : allSongs);
       return;
     }
 
     const lowercasedQuery = query.toLowerCase();
-    const results = songs.filter(
-      (song) =>
-        song.title.toLowerCase().includes(lowercasedQuery) ||
-        song.singer.toLowerCase().includes(lowercasedQuery) ||
-        (song.mood && song.mood.toLowerCase().includes(lowercasedQuery)) ||
-        (song.weather && song.weather.toLowerCase().includes(lowercasedQuery))
+    setFilteredSongs(
+      (playlistid ? playlistData?.songs : allSongs)?.filter(
+        (song) =>
+          song.title.toLowerCase().includes(lowercasedQuery) ||
+          song.singer.toLowerCase().includes(lowercasedQuery) ||
+          (song.mood && song.mood.toLowerCase().includes(lowercasedQuery)) ||
+          (song.weather && song.weather.toLowerCase().includes(lowercasedQuery))
+      )
     );
-
-    setFilteredSongs(results);
   };
 
   return (
     <div className="h-screen bg-[#121212] text-white">
       <div className="h-[90%] flex">
-        <Sidebar_ songs={songs} playSong={playSong} />
+        <Sidebar_ fetchPlayListId={fetchPlaylistId} />
         <div className="w-[100%] m-2 px-6 pt-4 rounded bg-[#121212] overflow-auto lg:w-[75%] lg:ml-0">
-          {/* Pass search handler to Navbar */}
           <Navbar onSearch={handleSearch} />
 
-          <div className="mt-6">
-            <h2 className="text-2xl font-bold mb-4">All Songs</h2>
+          {playlistData ? (
+  <PlaylistView 
+    playlist={playlistData} 
+    songs={filteredSongs} 
+    playSong={playSong} 
+    goBack={() => setPlaylistid(null)} 
+  />
+) : (
+  <div className="mt-4">
+    <h1 className="text-xl font-bold mb-2">All Songs</h1>
+    <SongGrid songs={filteredSongs} playSong={playSong} />
+  </div>
+)}
 
-            {filteredSongs.length === 0 ? (
-              <p className="text-gray-400">No songs found.</p>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4">
-                {filteredSongs.map((song) => (
-                  <div
-                    key={song._id}
-                    className="bg-[#181818] p-4 rounded-lg cursor-pointer hover:bg-[#1f1f1f] transition relative"
-                    onClick={() => playSong(song)}
-                  >
-                    <img
-                      src={song.thumbnail}
-                      alt={song.title}
-                      className="w-full h-40 object-cover rounded-md"
-                    />
-                    <div className="mt-3">
-                      <h3 className="text-sm font-semibold truncate">
-                        {song.title}
-                      </h3>
-                      <p className="text-xs text-gray-400">{song.singer}</p>
-                      <p className="text-xs text-gray-500">{song.genre}</p>
-                      <p className="text-xs text-gray-500">
-                        {song.mood ? `Mood: ${song.mood}` : ""}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {song.weather ? `Weather: ${song.weather}` : ""}
-                      </p>
-                    </div>
-                    <button className="absolute bottom-3 right-3 bg-green-500 p-2 rounded-full">
-                      <FaPlay size={14} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
       </div>
 
-      {currentSong && (
-        <Player
-          song={currentSong}
-          setSong={setCurrentSong}
-          playNext={playNext}
-        />
-      )}
+      {currentSong && <Player song={currentSong} setSong={setCurrentSong} playNext={playNext} />}
     </div>
   );
 };

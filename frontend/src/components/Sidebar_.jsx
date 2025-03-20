@@ -4,11 +4,13 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Cookies from "js-cookie";
 import CreatePlaylistModal from "./CreatePlaylistModal";
+import MashupCreator from "./MashupCreator";
 
-const Sidebar_ = () => {
+const Sidebar_ = ({ fetchPlayListId }) => {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [playlists, setPlaylists] = useState([]);
+  const [showMashup, setShowMashup] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token") || Cookies.get("token");
@@ -22,7 +24,7 @@ const Sidebar_ = () => {
       .catch((err) => console.error("Error fetching playlists:", err));
   }, []);
 
-  const generatePlaylistThumbnail = (playlist) => {
+ const generatePlaylistThumbnail = (playlist) => {
     const songThumbnails = playlist.songs
       .map((song) => song?.songId?.thumbnail)
       .filter(Boolean); // remove undefined/null thumbnails
@@ -98,7 +100,19 @@ const Sidebar_ = () => {
           <div className="flex items-center gap-3">
             <img src={assets.stack_icon} className="w-8" alt="Library" />
             <p className="font-semibold">Your Library</p>
-          </div>
+          </div>{" "}
+          {/* <button
+            className="cursor-pointer p-2 bg-blue-600 rounded-full hover:bg-blue-700"
+            onClick={() => setShowMashup(!showMashup)}
+          >
+            <img
+              src={
+                "https://img.icons8.com/?size=100&id=wgEWOAimcv4d&format=png&color=FFFFFF"
+              }
+              className="w-8"
+              alt="Create Mashup"
+            />
+          </button> */}
           <button
             className="cursor-pointer p-1"
             onClick={() => setShowModal((prev) => !prev)}
@@ -114,8 +128,7 @@ const Sidebar_ = () => {
               <div
                 key={playlist._id}
                 className="flex items-center gap-3 p-2 hover:bg-gray-800 rounded cursor-pointer"
-                onClick={() => navigate(`/playlist/${playlist._id}`)}
-                // onClick={playlistlayout(playlist._id)}
+                onClick={() => fetchPlayListId(playlist._id)}
               >
                 <img
                   id={`playlist-thumbnail-${playlist._id}`}
@@ -134,8 +147,8 @@ const Sidebar_ = () => {
           )}
         </div>
       </div>
-
       {showModal && <CreatePlaylistModal onClose={() => setShowModal(false)} />}
+      {showMashup && <MashupCreator />}
     </div>
   );
 };
